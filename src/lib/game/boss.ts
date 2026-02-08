@@ -1,110 +1,194 @@
 import type { BossData, ModelPosition } from '@/types/game'
 
-// Base boss model
+// Horror creature base boss model - exact reproduction from boss.html
 const BASE_BOSS: BossData = {
-  name: 'ダークドラゴン',
+  name: 'ナイトメアビースト',
   element: 'dark',
   hp: 500,
   attack: 85,
   defense: 60,
   speed: 35,
   rarity: 4,
-  specialAbility: '暗黒のブレス',
+  specialAbility: '恐怖の眼光',
   weakness: 'light',
   resistance: 'dark',
   model: {
     type: 'group',
-    position: [0, 2.2, 0],
+    position: [0, 0, 0],
     children: [
-      { type: 'cylinder', color: '#2a1a3e', position: [0, 0, 0], scale: [0.9, 1.8, 0.9], rotation: [1.57, 0, 0] },
-      { type: 'sphere', color: '#3a2a4e', position: [0, 0.1, 0], scale: [0.75, 0.6, 0.65] },
-      { type: 'sphere', color: '#2a1a3e', position: [0, 0.4, 1.1], scale: [0.55, 0.5, 0.55], part: 'head' },
-      { type: 'cone', color: '#1a0a2e', position: [-0.2, 0.7, 1.0], scale: [0.1, 0.35, 0.08], rotation: [0.3, 0, 0.3] },
-      { type: 'cone', color: '#1a0a2e', position: [0.2, 0.7, 1.0], scale: [0.1, 0.35, 0.08], rotation: [0.3, 0, -0.3] },
-      { type: 'sphere', color: '#ff0000', emissive: '#ff0000', position: [-0.15, 0.5, 1.35], scale: [0.08, 0.1, 0.06] },
-      { type: 'sphere', color: '#ff0000', emissive: '#ff0000', position: [0.15, 0.5, 1.35], scale: [0.08, 0.1, 0.06] },
-      { type: 'cone', color: '#3a2a4e', position: [0, 0.3, 1.5], scale: [0.12, 0.25, 0.08], rotation: [-1.2, 0, 0] },
+      // Body - SphereGeometry(1.5) at origin, color 0x8b7355
+      { type: 'sphere', color: '#8b7355', position: [0, 0, 0], scale: [1.5, 1.5, 1.5], rawScale: true },
+
+      // Head - SphereGeometry(1), y=2, scale(1.2, 1.3, 1), color 0xa08070
+      { type: 'sphere', color: '#a08070', position: [0, 2, 0], scale: [1.2, 1.3, 1.0], part: 'head', rawScale: true },
+
+      // Left Ear - ConeGeometry(0.3, 2), position(-0.7, 3.5, 0.2), rotation.z=-0.3
+      { type: 'cone', color: '#7a6050', position: [-0.7, 3.5, 0.2], scale: [0.3, 2.0, 0.3], rotation: [0, 0, -0.3] },
+
+      // Right Ear - ConeGeometry(0.3, 2), position(0.7, 3.3, 0.2), rotation.z=0.3, scale.y=1.3
+      { type: 'cone', color: '#7a6050', position: [0.7, 3.3, 0.2], scale: [0.3, 2.6, 0.3], rotation: [0, 0, 0.3] },
+
+      // Eye 1 (Left main) - eyeGroup.y=2, eye at (-0.5, 0.3, 0.9), scale 1
+      // White: radius 0.25
+      { type: 'sphere', color: '#ffffee', emissive: '#222200', position: [-0.5, 2.3, 0.9], scale: [0.25, 0.25, 0.25], rawScale: true },
+      // Pupil: radius 0.15, z += 0.2
+      { type: 'sphere', color: '#000000', emissive: '#ff0000', position: [-0.5, 2.3, 1.1], scale: [0.15, 0.15, 0.15], rawScale: true },
+
+      // Eye 2 (Right main) - at (0.5, 0.3, 0.9), scale 1
+      { type: 'sphere', color: '#ffffee', emissive: '#222200', position: [0.5, 2.3, 0.9], scale: [0.25, 0.25, 0.25], rawScale: true },
+      { type: 'sphere', color: '#000000', emissive: '#ff0000', position: [0.5, 2.3, 1.1], scale: [0.15, 0.15, 0.15], rawScale: true },
+
+      // Eye 3 (Center top) - at (0, 0.6, 0.8), scale 0.6
+      // White: radius 0.25*0.6=0.15
+      { type: 'sphere', color: '#ffffee', emissive: '#222200', position: [0, 2.6, 0.8], scale: [0.15, 0.15, 0.15], rawScale: true },
+      // Pupil: radius 0.15*0.6=0.09, z += 0.2*0.6=0.12
+      { type: 'sphere', color: '#000000', emissive: '#ff0000', position: [0, 2.6, 0.92], scale: [0.09, 0.09, 0.09], rawScale: true },
+
+      // Eye 4 (Lower left small) - at (-0.3, -0.2, 0.95), scale 0.4
+      // White: radius 0.25*0.4=0.1
+      { type: 'sphere', color: '#ffffee', emissive: '#222200', position: [-0.3, 1.8, 0.95], scale: [0.1, 0.1, 0.1], rawScale: true },
+      // Pupil: radius 0.15*0.4=0.06, z += 0.2*0.4=0.08
+      { type: 'sphere', color: '#000000', emissive: '#ff0000', position: [-0.3, 1.8, 1.03], scale: [0.06, 0.06, 0.06], rawScale: true },
+
+      // Tentacle 1 - angle=0, x=1.3, z=0, y=-0.5, rotation.z=0
       {
         type: 'group',
-        position: [-0.5, 0.5, 0],
-        part: 'wing_l',
+        position: [1.3, -0.5, 0],
+        rotation: [0, 0, 0],
+        part: 'arm_r',
         children: [
-          { type: 'box', color: '#3a1a5e', position: [-0.7, 0, 0], scale: [1.5, 0.06, 0.8] },
-          { type: 'box', color: '#2a0a4e', position: [-1.2, 0.1, 0], scale: [0.8, 0.04, 0.5] }
+          // segment 0: size=0.15, y=0, x=0
+          { type: 'sphere', color: '#6b5b4b', position: [0, 0, 0], scale: [0.15, 0.15, 0.15], rawScale: true },
+          // segment 1: size=0.13, y=-0.3, x=sin(0.5)*0.2≈0.096
+          { type: 'sphere', color: '#6b5b4b', position: [0.096, -0.3, 0], scale: [0.13, 0.13, 0.13], rawScale: true },
+          // segment 2: size=0.11, y=-0.6, x=sin(1.0)*0.2≈0.168
+          { type: 'sphere', color: '#6b5b4b', position: [0.168, -0.6, 0], scale: [0.11, 0.11, 0.11], rawScale: true },
+          // segment 3: size=0.09, y=-0.9, x=sin(1.5)*0.2≈0.2
+          { type: 'sphere', color: '#6b5b4b', position: [0.2, -0.9, 0], scale: [0.09, 0.09, 0.09], rawScale: true },
+          // segment 4: size=0.07, y=-1.2, x=sin(2.0)*0.2≈0.182
+          { type: 'sphere', color: '#6b5b4b', position: [0.182, -1.2, 0], scale: [0.07, 0.07, 0.07], rawScale: true }
         ]
       },
+
+      // Tentacle 2 - angle=π/2, x=0, z=1.3, y=-0.5, rotation.z=π/2≈1.57
       {
         type: 'group',
-        position: [0.5, 0.5, 0],
-        part: 'wing_r',
+        position: [0, -0.5, 1.3],
+        rotation: [0, 0, 1.57],
+        part: 'leg_fr',
         children: [
-          { type: 'box', color: '#3a1a5e', position: [0.7, 0, 0], scale: [1.5, 0.06, 0.8] },
-          { type: 'box', color: '#2a0a4e', position: [1.2, 0.1, 0], scale: [0.8, 0.04, 0.5] }
+          { type: 'sphere', color: '#6b5b4b', position: [0, 0, 0], scale: [0.15, 0.15, 0.15], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.096, -0.3, 0], scale: [0.13, 0.13, 0.13], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.168, -0.6, 0], scale: [0.11, 0.11, 0.11], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.2, -0.9, 0], scale: [0.09, 0.09, 0.09], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.182, -1.2, 0], scale: [0.07, 0.07, 0.07], rawScale: true }
         ]
       },
-      { type: 'cylinder', color: '#2a1a3e', position: [-0.4, -0.55, 0.5], scale: [0.16, 0.7, 0.16], part: 'leg_fl' },
-      { type: 'cylinder', color: '#2a1a3e', position: [0.4, -0.55, 0.5], scale: [0.16, 0.7, 0.16], part: 'leg_fr' },
-      { type: 'cylinder', color: '#2a1a3e', position: [-0.4, -0.55, -0.5], scale: [0.16, 0.7, 0.16], part: 'leg_bl' },
-      { type: 'cylinder', color: '#2a1a3e', position: [0.4, -0.55, -0.5], scale: [0.16, 0.7, 0.16], part: 'leg_br' },
-      { type: 'cylinder', color: '#1a0a2e', position: [0, 0.1, -1.2], scale: [0.1, 0.8, 0.1], rotation: [1.2, 0, 0], part: 'tail' }
+
+      // Tentacle 3 - angle=π, x=-1.3, z=0, y=-0.5, rotation.z=π≈3.14
+      {
+        type: 'group',
+        position: [-1.3, -0.5, 0],
+        rotation: [0, 0, 3.14],
+        part: 'arm_l',
+        children: [
+          { type: 'sphere', color: '#6b5b4b', position: [0, 0, 0], scale: [0.15, 0.15, 0.15], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.096, -0.3, 0], scale: [0.13, 0.13, 0.13], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.168, -0.6, 0], scale: [0.11, 0.11, 0.11], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.2, -0.9, 0], scale: [0.09, 0.09, 0.09], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.182, -1.2, 0], scale: [0.07, 0.07, 0.07], rawScale: true }
+        ]
+      },
+
+      // Tentacle 4 - angle=3π/2, x=0, z=-1.3, y=-0.5, rotation.z=3π/2≈4.71
+      {
+        type: 'group',
+        position: [0, -0.5, -1.3],
+        rotation: [0, 0, 4.71],
+        part: 'leg_bl',
+        children: [
+          { type: 'sphere', color: '#6b5b4b', position: [0, 0, 0], scale: [0.15, 0.15, 0.15], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.096, -0.3, 0], scale: [0.13, 0.13, 0.13], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.168, -0.6, 0], scale: [0.11, 0.11, 0.11], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.2, -0.9, 0], scale: [0.09, 0.09, 0.09], rawScale: true },
+          { type: 'sphere', color: '#6b5b4b', position: [0.182, -1.2, 0], scale: [0.07, 0.07, 0.07], rawScale: true }
+        ]
+      }
     ]
   }
 }
 
 // Boss names by stage
 const BOSS_NAMES = [
-  'ダークドラゴン',
-  'カオスワイバーン',
-  'アビスドレイク',
-  'ヴォイドサーペント',
-  'ネクロバハムート',
-  'シャドウリヴァイアサン',
-  'デスフェニックス',
-  'ブラッドティアマト',
-  'インフェルノヒドラ',
-  'エターナルドラゴン'
+  'ナイトメアビースト',
+  'ブラッドフィーンド',
+  'フロストホラー',
+  'ヴェノムクリーパー',
+  'サンダーデーモン',
+  'シャドウレイス',
+  'インフェルノビースト',
+  'アビスウォッチャー',
+  'カオスホラー',
+  'エターナルナイトメア'
 ]
 
-// Boss color palettes by stage
-const BOSS_COLORS = [
-  ['#2a1a3e', '#3a2a4e', '#1a0a2e', '#3a1a5e', '#2a0a4e'],
-  ['#3e1a1a', '#4e2a2a', '#2e0a0a', '#5e1a1a', '#4e0a0a'],
-  ['#1a2a3e', '#2a3a4e', '#0a1a2e', '#1a3a5e', '#0a2a4e'],
-  ['#1a3e1a', '#2a4e2a', '#0a2e0a', '#1a5e1a', '#0a4e0a'],
-  ['#3e3e1a', '#4e4e2a', '#2e2e0a', '#5e5e1a', '#4e4e0a'],
-  ['#3e1a2a', '#4e2a3a', '#2e0a1a', '#5e1a2a', '#4e0a1a'],
-  ['#2a3e1a', '#3a4e2a', '#1a2e0a', '#2a5e1a', '#1a4e0a'],
-  ['#1a1a3e', '#2a2a4e', '#0a0a2e', '#1a1a5e', '#0a0a4e'],
-  ['#3e2a1a', '#4e3a2a', '#2e1a0a', '#5e2a1a', '#4e1a0a'],
-  ['#2a1a2a', '#3a2a3a', '#1a0a1a', '#3a1a3a', '#2a0a2a']
-]
+// Color palettes for each stage: [body, head, ear, tentacle]
+const BOSS_COLORS: Record<number, { body: string; head: string; ear: string; tentacle: string }> = {
+  // Stage 1: Original brown/tan (matching boss.html)
+  0: { body: '#8b7355', head: '#a08070', ear: '#7a6050', tentacle: '#6b5b4b' },
+  // Stage 2: Blood red
+  1: { body: '#8b3535', head: '#a05050', ear: '#7a3030', tentacle: '#6b2b2b' },
+  // Stage 3: Frost blue
+  2: { body: '#556b8b', head: '#7080a0', ear: '#506080', tentacle: '#4b5b7b' },
+  // Stage 4: Toxic green
+  3: { body: '#4b8b45', head: '#60a058', ear: '#507a48', tentacle: '#406b3b' },
+  // Stage 5: Storm purple
+  4: { body: '#7b558b', head: '#9070a0', ear: '#7a5080', tentacle: '#6b4b7b' },
+  // Stage 6: Shadow gray
+  5: { body: '#5b5b6b', head: '#707080', ear: '#606070', tentacle: '#505060' },
+  // Stage 7: Inferno orange
+  6: { body: '#8b5535', head: '#a07050', ear: '#8a5030', tentacle: '#7b4525' },
+  // Stage 8: Abyss dark blue
+  7: { body: '#35458b', head: '#5060a0', ear: '#304080', tentacle: '#2b3b6b' },
+  // Stage 9: Chaos magenta
+  8: { body: '#8b3570', head: '#a05088', ear: '#7a3068', tentacle: '#6b2b58' },
+  // Stage 10: Eternal void (almost black)
+  9: { body: '#3a3545', head: '#4a4555', ear: '#3a3545', tentacle: '#2a2535' }
+}
 
-// Boss eye colors by stage
-const BOSS_EYES = [
-  '#ff0000',
-  '#ff4400',
-  '#00ffff',
-  '#44ff00',
-  '#ffff00',
-  '#ff00ff',
-  '#ff8800',
-  '#0088ff',
-  '#ff2200',
-  '#ffffff'
+// Eye glow colors by stage
+const BOSS_EYE_COLORS = [
+  '#ff0000', // Red
+  '#ff2200', // Blood red
+  '#00ccff', // Ice blue
+  '#44ff00', // Toxic green
+  '#aa00ff', // Electric purple
+  '#666666', // Ghostly gray
+  '#ff6600', // Fire orange
+  '#0044ff', // Deep blue
+  '#ff00aa', // Chaos pink
+  '#ffffff'  // Void white
 ]
 
 /**
  * Recursively recolor a model node
  */
-function recolorNode(node: ModelPosition, colors: string[], eyeColor: string): void {
-  if (node.color === '#2a1a3e') node.color = colors[0]
-  else if (node.color === '#3a2a4e') node.color = colors[1]
-  else if (node.color === '#1a0a2e') node.color = colors[2]
-  else if (node.color === '#3a1a5e') node.color = colors[3]
-  else if (node.color === '#2a0a4e') node.color = colors[4]
+function recolorNode(
+  node: ModelPosition,
+  colors: { body: string; head: string; ear: string; tentacle: string },
+  eyeColor: string
+): void {
+  // Body color
+  if (node.color === '#8b7355') node.color = colors.body
+  // Head color
+  else if (node.color === '#a08070') node.color = colors.head
+  // Ear color
+  else if (node.color === '#7a6050') node.color = colors.ear
+  // Tentacle color
+  else if (node.color === '#6b5b4b') node.color = colors.tentacle
 
-  if (node.color === '#ff0000' && node.emissive === '#ff0000') {
-    node.color = eyeColor
+  // Eye glow - update emissive for pupils (black spheres with red emissive)
+  if (node.color === '#000000' && node.emissive === '#ff0000') {
     node.emissive = eyeColor
   }
 
@@ -117,10 +201,10 @@ function recolorNode(node: ModelPosition, colors: string[], eyeColor: string): v
  * Get scaled boss for a given stage
  */
 export function getScaledBoss(stage: number): BossData {
-  const multiplier = Math.pow(2, stage - 1)
+  const multiplier = Math.pow(1.8, stage - 1)
   const index = (stage - 1) % BOSS_NAMES.length
   const colors = BOSS_COLORS[index]
-  const eyeColor = BOSS_EYES[index]
+  const eyeColor = BOSS_EYE_COLORS[index]
 
   // Deep clone the model
   const model = JSON.parse(JSON.stringify(BASE_BOSS.model)) as ModelPosition

@@ -424,6 +424,7 @@ export default function Game() {
     setDiceResult(null)
 
     if (outcome === 'fail') {
+      audioManager.playSE('ultrafusion_failure')
       const firstIdx = fpR.current[0]
       const firstStats = genRef.current[firstIdx]?.userData?.stats as CharacterStats || {}
       const histItem = history[firstIdx]
@@ -452,13 +453,19 @@ export default function Game() {
     savedRef.current = genRef.current.map(o => ({ pos: o.position.clone(), rot: o.rotation.clone(), vis: o.visible }))
     genRef.current.forEach(o => { o.visible = false })
 
+    // Lower ground for battle scene
+    const grid = scene.getObjectByName('battleGrid')
+    const gnd = scene.getObjectByName('battleGround')
+    if (grid) grid.position.y = -4
+    if (gnd) gnd.position.y = -4
+
     const pObjs: THREE.Object3D[] = []
     partyIdxs.forEach((idx, i) => {
       const obj = genRef.current[idx]
       if (!obj) return
       obj.visible = true
       const spread = partyIdxs.length > 1 ? (i - (partyIdxs.length - 1) / 2) * 2.5 : 0
-      obj.position.set(-5, obj.userData.baseY || 0, spread)
+      obj.position.set(-5, (obj.userData.baseY || 0) - 4, spread)
       obj.rotation.set(0, Math.PI * 0.5, 0)
       delete obj.userData.moveDir
       pObjs.push(obj)
@@ -466,18 +473,18 @@ export default function Game() {
     partyBRef.current = pObjs
 
     const bossObj = buildObj(boss.model)
-    const bossScale = 1.5 + (stageR.current - 1) * 0.15
+    const bossScale = 1.15 + (stageR.current - 1) * 0.1
     if (bossObj) {
       bossObj.scale.set(bossScale, bossScale, bossScale)
-      bossObj.position.set(5, (bossObj.userData.baseY || 0) + 5, 0)
+      bossObj.position.set(5, (bossObj.userData.baseY || 0) - 1, 0)
       bossObj.rotation.set(0, -Math.PI * 0.5, 0)
       bossObj.userData.float = true
       bossObj.userData.baseY = bossObj.position.y
       scene.add(bossObj)
       bossRef.current = bossObj
     }
-    cam.position.set(0, 5, 16)
-    cam.lookAt(0, 3, 0)
+    cam.position.set(0, 2, 16)
+    cam.lookAt(0, -1, 0)
   }, [clearHighlights])
 
   // Teardown battle
@@ -528,6 +535,12 @@ export default function Game() {
       cam.position.copy(savedCamRef.current.pos)
       cam.lookAt(0, 0, 0)
     }
+
+    // Restore ground position for field scene
+    const grid = scene.getObjectByName('battleGrid')
+    const gnd = scene.getObjectByName('battleGround')
+    if (grid) grid.position.y = 0
+    if (gnd) gnd.position.y = 0
 
     if (fusionResRef.current && won) {
       const fRes = fusionResRef.current
@@ -654,16 +667,17 @@ export default function Game() {
             const fObj = fRes.obj as THREE.Object3D
             if (fObj && sceneRef.current) {
               const slotZ = partyBRef.current.length > 0 ? partyBRef.current[partyBRef.current.length - 1].position.z + 2.5 : 0
-              fObj.position.set(-5, 8, slotZ)
+              fObj.position.set(-5, 3, slotZ)
               fObj.rotation.set(0, Math.PI * 0.5, 0)
               sceneRef.current.add(fObj)
               fusionBRef.current = fObj
               partyBRef.current.push(fObj)
+              const targetY = (fObj.userData?.baseY || 0) - 4
               const drop = () => {
-                if (fObj.position.y > (fObj.userData?.baseY || 0)) {
+                if (fObj.position.y > targetY) {
                   fObj.position.y -= 0.15
                   requestAnimationFrame(drop)
-                } else fObj.position.y = fObj.userData?.baseY || 0
+                } else fObj.position.y = targetY
               }
               drop()
             }
@@ -684,6 +698,7 @@ export default function Game() {
         const won = ev.winner === 'party'
         setBLog(p => [...p, `${won ? '🎉' : '💀'} ${ev.text || (won ? '勝利！' : '敗北...')}`])
         if (won) {
+          audioManager.playSE('win')
           playDefeatAnim(bossRef.current)
           const winners = [...partyBRef.current]
           if (fusionBRef.current) winners.push(fusionBRef.current)
@@ -856,9 +871,14 @@ export default function Game() {
     p2.position.set(10, 5, -10)
     scene.add(p2)
 
-    scene.add(new THREE.GridHelper(100, 50, 0x00ffff, 0x1a1a2e))
+    const grid = new THREE.GridHelper(100, 50, 0x00ffff, 0x1a1a2e)
+    grid.position.y = 0
+    grid.name = 'battleGrid'
+    scene.add(grid)
     const gnd = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ color: 0x0a0a15, roughness: 0.8, metalness: 0.2 }))
     gnd.rotation.x = -Math.PI / 2
+    gnd.position.y = 0
+    gnd.name = 'battleGround'
     gnd.receiveShadow = true
     scene.add(gnd)
 

@@ -1,7 +1,7 @@
 // Audio Manager for BGM and SE
 
 type BGMType = 'field' | 'battle'
-type SEType = 'hit' | 'lose' | 'button' | 'ultrafusion_success'
+type SEType = 'hit' | 'lose' | 'win' | 'button' | 'ultrafusion_success' | 'ultrafusion_failure'
 
 const BGM_PATHS: Record<BGMType, string> = {
   field: '/music/bgm/bgm_lab.mp3',
@@ -11,8 +11,10 @@ const BGM_PATHS: Record<BGMType, string> = {
 const SE_PATHS: Record<SEType, string> = {
   hit: '/music/se/se_hit.mp3',
   lose: '/music/se/se_lose.mp3',
+  win: '/music/se/se_win.mp3',
   button: '/music/se/se_button.mp3',
-  ultrafusion_success: '/music/se/se_ultrafusion_success.mp3'
+  ultrafusion_success: '/music/se/se_ultrafusion_success.mp3',
+  ultrafusion_failure: '/music/se/se_ultrafusion_failure.mp3'
 }
 
 class AudioManager {

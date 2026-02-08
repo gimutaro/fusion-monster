@@ -33,6 +33,7 @@ export interface ModelPosition {
   part?: string
   children?: ModelPosition[]
   animate?: Record<string, unknown>
+  rawScale?: boolean // Use scale values directly as geometry size (for spheres: scale[0] = radius)
 }
 
 // Character definition with model and stats

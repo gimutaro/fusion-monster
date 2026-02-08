@@ -8,12 +8,21 @@ export function buildObj(def: ModelPosition): THREE.Object3D | null {
   let geometry: THREE.BufferGeometry | undefined
   const scale = def.scale || [1, 1, 1]
 
+  // Check for non-uniform scaling
+  const isNonUniform = scale[0] !== scale[1] || scale[1] !== scale[2]
+
   switch (def.type) {
     case 'box':
       geometry = new THREE.BoxGeometry(scale[0], scale[1], scale[2])
       break
     case 'sphere':
-      geometry = new THREE.SphereGeometry(scale[0] * 0.5, 32, 32)
+      // Use scale[0] * 0.5 as radius (scale represents diameter)
+      // For non-uniform scaling, use rawScale flag to use scale[0] directly as radius
+      if (def.rawScale) {
+        geometry = new THREE.SphereGeometry(scale[0], 32, 32)
+      } else {
+        geometry = new THREE.SphereGeometry(scale[0] * 0.5, 32, 32)
+      }
       break
     case 'cylinder':
       geometry = new THREE.CylinderGeometry(
@@ -24,7 +33,8 @@ export function buildObj(def: ModelPosition): THREE.Object3D | null {
       )
       break
     case 'cone':
-      geometry = new THREE.ConeGeometry(scale[0] * 0.5, scale[1], 32)
+      // Use scale[0] as radius and scale[1] as height
+      geometry = new THREE.ConeGeometry(scale[0], scale[1], 32)
       break
     case 'torus':
       geometry = new THREE.TorusGeometry(scale[0] * 0.5, scale[1] * 0.15, 16, 100)
@@ -137,6 +147,11 @@ export function buildObj(def: ModelPosition): THREE.Object3D | null {
       if (def.rotation) mesh.rotation.set(def.rotation[0], def.rotation[1], def.rotation[2])
     }
 
+    // Apply non-uniform scaling to spheres inside pivot (only for rawScale mode)
+    if (def.type === 'sphere' && def.rawScale && isNonUniform) {
+      mesh.scale.set(1, scale[1] / scale[0], scale[2] / scale[0])
+    }
+
     pivot.add(mesh)
     pivot.userData = {
       part,
@@ -148,6 +163,12 @@ export function buildObj(def: ModelPosition): THREE.Object3D | null {
 
   if (def.position) mesh.position.set(def.position[0], def.position[1], def.position[2])
   if (def.rotation) mesh.rotation.set(def.rotation[0], def.rotation[1], def.rotation[2])
+
+  // Apply non-uniform scaling to spheres (only for rawScale mode)
+  if (def.type === 'sphere' && def.rawScale && isNonUniform) {
+    mesh.scale.set(1, scale[1] / scale[0], scale[2] / scale[0])
+  }
+
   mesh.userData = {
     ...(def.animate || {}),
     part,
