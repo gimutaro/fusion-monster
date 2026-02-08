@@ -5,10 +5,10 @@ A 3D monster fusion battle game built with Next.js, Three.js, and the Anthropic 
 ## Features
 
 - Generate unique monsters using AI
-- Fuse two monsters together to create new powerful creatures
-- Battle against bosses in dramatic anime-style combat
+- Fuse two monsters together to create powerful new creatures
+- Battle bosses with anime-style combat effects
 - Progress through stages with increasingly challenging bosses
-- Super Fusion with dice-based mechanics (unlocked after Stage 1)
+- Dice-based Super Fusion (unlocked after clearing Stage 1)
 
 ## Tech Stack
 
@@ -23,8 +23,8 @@ A 3D monster fusion battle game built with Next.js, Three.js, and the Anthropic 
 ### Prerequisites
 
 - Node.js 18+
-- npm, yarn, pnpm, or bun
-- Anthropic API Key
+- npm / yarn / pnpm / bun
+- Anthropic API key (get one from [Anthropic Console](https://console.anthropic.com/))
 
 ### Setup
 
@@ -44,35 +44,21 @@ npm install
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-5. **Enter your Anthropic API key** on the start screen to begin playing.
+5. Enter your **Anthropic API key** on the start screen to begin playing
 
 ## API Key
 
-This game requires an Anthropic API key to generate monsters and battle scenarios.
-
-- Get your API key from [Anthropic Console](https://console.anthropic.com/)
-- Enter your key on the game's start screen
-- Your key is stored locally in your browser (localStorage) and is never sent to any server other than Anthropic's API
+- You will be prompted to enter your API key on the start screen
+- No environment variable configuration is required
+- Your key is stored in the browser's localStorage and is never sent to any server other than Anthropic's API
 
 ## How to Play
 
-1. **Enter API Key**: Input your Anthropic API key on the start screen
-2. **Generate Monsters**: Click the generate button and describe a monster (e.g., "Fire Dragon", "Ice Golem")
-3. **Select for Fusion**: Click on two monsters to select them for fusion
-4. **Fuse**: Click the FUSION button to combine them into a new creature
-5. **Battle**: Select party members and start the battle against the stage boss
-6. **Progress**: Defeat bosses to unlock new stages and Super Fusion
-
-## API Routes
-
-The game uses the following API endpoints powered by Claude:
-
-- `/api/generate` - Generate new monster stats and 3D models
-- `/api/fusion` - Create fusion results from two monsters
-- `/api/battle` - Generate dramatic battle scenarios
-
-## License
-
-MIT
+1. **Enter API Key** - Input your Anthropic API key on the start screen
+2. **Generate Monsters** - Create monsters using the generate button (e.g., "Fire Dragon", "Ice Golem")
+3. **Select for Fusion** - Click two monsters to select them
+4. **Fuse** - Press the FUSION button to combine them
+5. **Battle** - Choose party members and fight the stage boss
+6. **Progress** - Defeat bosses to unlock new stages and Super Fusion
