@@ -17,7 +17,7 @@ export function CharacterBook({ history, bookPage, setBookPage, fusionSt }: Char
   const bookCanvasRef = useRef<HTMLCanvasElement>(null)
   const bookRenRef = useRef<THREE.WebGLRenderer | null>(null)
   const bookAnimRef = useRef<number | null>(null)
-  const bookDragRef = useRef({ dragging: false, lastX: 0, lastY: 0, rotY: 0, rotX: 0, zoom: 8 })
+  const bookDragRef = useRef({ dragging: false, lastX: 0, lastY: 0, rotY: 0, rotX: 0, zoom: 8, userRotated: false })
 
   useEffect(() => {
     if (bookAnimRef.current) {
@@ -39,6 +39,7 @@ export function CharacterBook({ history, bookPage, setBookPage, fusionSt }: Char
     bd.rotX = 0
     bd.zoom = 8
     bd.dragging = false
+    bd.userRotated = false
 
     const scene = new THREE.Scene()
     scene.background = new THREE.Color(0x2a2218)
@@ -101,6 +102,7 @@ export function CharacterBook({ history, bookPage, setBookPage, fusionSt }: Char
       bd.rotY += dx * 0.01
       bd.rotX += dy * 0.01
       bd.rotX = Math.max(-1.2, Math.min(1.2, bd.rotX))
+      bd.userRotated = true // Stop auto-rotation once user drags
       if (charObj) {
         charObj.rotation.y = bd.rotY
         charObj.rotation.x = bd.rotX
@@ -155,6 +157,13 @@ export function CharacterBook({ history, bookPage, setBookPage, fusionSt }: Char
       if (charObj) {
         const t = Date.now() * 0.003
         const ws = 1.2
+
+        // Auto-rotate slowly if user hasn't manually rotated
+        if (!bd.userRotated) {
+          bd.rotY += 0.005
+          charObj.rotation.y = bd.rotY
+        }
+
         charObj.traverse(c => {
           const p = c.userData.part
           if (!p) return
