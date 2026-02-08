@@ -74,7 +74,7 @@ export const DRAMA_POOL: DramaEvent[] = [
 export const INITIAL_CHARS: CharacterDefinition[] = [
   {
     stats: {
-      name: 'Flame Swordsman',
+      name: 'Warrior of Fire',
       hp: 180,
       attack: 85,
       defense: 55,

@@ -54,7 +54,7 @@ WRITING STYLE:
 - Short narration (under 15 chars) is OK before dialogue to set the scene
 - Format: short context + Character: "Dramatic line!"
 - Examples of GOOD text:
-  "Flame Swordsman: 'Not yet... I won't give up! As long as I have my comrades, I will never fall!'"
+  "Warrior of Fire: 'Not yet... I won't give up! As long as I have my comrades, I will never fall!'"
   "A mighty blow! Dark Dragon: 'GRAAAAH! You pests... you'll pay for this pain!'"
   "Ice Wolf: 'Master, now is the time to bare our fangs!'"
 - Make battles feel like anime climax scenes with tension, emotion, and hype

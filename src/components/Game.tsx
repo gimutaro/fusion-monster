@@ -142,15 +142,19 @@ export default function Game() {
     }
   }, [bPhase])
 
-  // BGM switching based on mode and intro state
+  // BGM switching based on mode, battle phase, and intro state
   useEffect(() => {
     if (showIntro) return
     if (mode === 'battle') {
-      audioManager.playBGM('battle')
+      if (bPhase === 'loading') {
+        audioManager.playBGM('loading')
+      } else {
+        audioManager.playBGM('battle')
+      }
     } else {
       audioManager.playBGM('field')
     }
-  }, [mode, showIntro])
+  }, [mode, bPhase, showIntro])
 
   // Play lose SE when battle is lost
   useEffect(() => {
@@ -771,6 +775,7 @@ export default function Game() {
   // End battle
   const endBattle = useCallback((won: boolean) => {
     teardownBattle(won)
+    audioManager.playBGM('field')
     if (won) {
       setStage(s => s + 1)
       setShowStageClear(true)

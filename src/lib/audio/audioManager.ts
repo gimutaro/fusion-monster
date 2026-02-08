@@ -1,11 +1,12 @@
 // Audio Manager for BGM and SE
 
-type BGMType = 'field' | 'battle'
+type BGMType = 'field' | 'battle' | 'loading'
 type SEType = 'hit' | 'lose' | 'win' | 'button' | 'ultrafusion_success' | 'ultrafusion_failure'
 
 const BGM_PATHS: Record<BGMType, string> = {
   field: '/music/bgm/bgm_lab.mp3',
-  battle: '/music/bgm/bgm_battle.mp3'
+  battle: '/music/bgm/bgm_battle.mp3',
+  loading: '/music/bgm/wait_generating.mp3'
 }
 
 const SE_PATHS: Record<SEType, string> = {
@@ -73,8 +74,8 @@ class AudioManager {
 
     const newAudio = this.bgmAudio
     const fadeIn = () => {
-      if (newAudio.volume < this.bgmVolume - 0.05) {
-        newAudio.volume = Math.min(this.bgmVolume, newAudio.volume + 0.02)
+      if (newAudio.volume < this.bgmVolume - 0.01) {
+        newAudio.volume = Math.min(this.bgmVolume, newAudio.volume + 0.003)
         requestAnimationFrame(fadeIn)
       } else {
         newAudio.volume = this.bgmVolume
