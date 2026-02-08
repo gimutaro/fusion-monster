@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fusion Monsters
+
+A 3D monster fusion battle game built with Next.js, Three.js, and the Anthropic Claude API.
+
+## Features
+
+- Generate unique monsters using AI
+- Fuse two monsters together to create new powerful creatures
+- Battle against bosses in dramatic anime-style combat
+- Progress through stages with increasingly challenging bosses
+- Super Fusion with dice-based mechanics (unlocked after Stage 1)
+
+## Tech Stack
+
+- **Framework**: Next.js 14+ (App Router)
+- **3D Graphics**: Three.js
+- **AI**: Anthropic Claude API
+- **Styling**: Tailwind CSS
+- **Language**: TypeScript
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+
+- npm, yarn, pnpm, or bun
+- Anthropic API Key
+
+### Setup
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd fusion-monster
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Create a `.env.local` file in the project root and add your Anthropic API key:
+```bash
+ANTHROPIC_API_KEY=your_api_key_here
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+You can get an API key from [Anthropic Console](https://console.anthropic.com/).
 
-## Learn More
+4. Run the development server:
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## How to Play
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Generate Monsters**: Click the generate button and describe a monster (e.g., "Fire Dragon", "Ice Golem")
+2. **Select for Fusion**: Click on two monsters to select them for fusion
+3. **Fuse**: Click the FUSION button to combine them into a new creature
+4. **Battle**: Select party members and start the battle against the stage boss
+5. **Progress**: Defeat bosses to unlock new stages and Super Fusion
 
-## Deploy on Vercel
+## Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `ANTHROPIC_API_KEY` | Your Anthropic API key for Claude | Yes |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## API Routes
+
+The game uses the following API endpoints powered by Claude:
+
+- `/api/generate` - Generate new monster stats and 3D models
+- `/api/fusion` - Create fusion results from two monsters
+- `/api/battle` - Generate dramatic battle scenarios
+
+## License
+
+MIT
