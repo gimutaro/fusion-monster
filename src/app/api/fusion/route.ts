@@ -7,6 +7,7 @@ interface FusionRequest {
   char2: CharacterStats
   isSuper?: boolean
   superMult?: number
+  apiKey: string
 }
 
 interface FusionResponse {
@@ -16,17 +17,15 @@ interface FusionResponse {
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const body: FusionRequest = await request.json()
+    const { char1, char2, isSuper, superMult = 1, apiKey } = body
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'API key not configured' },
-        { status: 500 }
+        { error: 'API key is required' },
+        { status: 400 }
       )
     }
-
-    const body: FusionRequest = await request.json()
-    const { char1, char2, isSuper, superMult = 1 } = body
 
     if (!char1 || !char2) {
       return NextResponse.json(

@@ -4,6 +4,7 @@ import type { CharacterStats, ModelPosition } from '@/types/game'
 
 interface GenerateRequest {
   prompt: string
+  apiKey: string
 }
 
 interface GenerateResponse {
@@ -13,17 +14,15 @@ interface GenerateResponse {
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const body: GenerateRequest = await request.json()
+    const { prompt, apiKey } = body
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'API key not configured' },
-        { status: 500 }
+        { error: 'API key is required' },
+        { status: 400 }
       )
     }
-
-    const body: GenerateRequest = await request.json()
-    const { prompt } = body
 
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return NextResponse.json(

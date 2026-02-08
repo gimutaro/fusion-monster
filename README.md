@@ -39,33 +39,31 @@ cd fusion-monster
 npm install
 ```
 
-3. Create a `.env.local` file in the project root and add your Anthropic API key:
-```bash
-ANTHROPIC_API_KEY=your_api_key_here
-```
-
-You can get an API key from [Anthropic Console](https://console.anthropic.com/).
-
-4. Run the development server:
+3. Run the development server:
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+5. **Enter your Anthropic API key** on the start screen to begin playing.
+
+## API Key
+
+This game requires an Anthropic API key to generate monsters and battle scenarios.
+
+- Get your API key from [Anthropic Console](https://console.anthropic.com/)
+- Enter your key on the game's start screen
+- Your key is stored locally in your browser (localStorage) and is never sent to any server other than Anthropic's API
 
 ## How to Play
 
-1. **Generate Monsters**: Click the generate button and describe a monster (e.g., "Fire Dragon", "Ice Golem")
-2. **Select for Fusion**: Click on two monsters to select them for fusion
-3. **Fuse**: Click the FUSION button to combine them into a new creature
-4. **Battle**: Select party members and start the battle against the stage boss
-5. **Progress**: Defeat bosses to unlock new stages and Super Fusion
-
-## Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `ANTHROPIC_API_KEY` | Your Anthropic API key for Claude | Yes |
+1. **Enter API Key**: Input your Anthropic API key on the start screen
+2. **Generate Monsters**: Click the generate button and describe a monster (e.g., "Fire Dragon", "Ice Golem")
+3. **Select for Fusion**: Click on two monsters to select them for fusion
+4. **Fuse**: Click the FUSION button to combine them into a new creature
+5. **Battle**: Select party members and start the battle against the stage boss
+6. **Progress**: Defeat bosses to unlock new stages and Super Fusion
 
 ## API Routes
 

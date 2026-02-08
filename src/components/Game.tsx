@@ -103,6 +103,7 @@ export default function Game() {
   const [genOpen, setGenOpen] = useState(false)
   const [, setOutcomeInfo] = useState<{ partyWins: boolean; partyTotal: number; bossPower: number; ratio: number } | null>(null)
   const [showIntro, setShowIntro] = useState(true)
+  const apiKeyRef = useRef<string>('')
   const [stage, setStage] = useState(1)
   const [showStageClear, setShowStageClear] = useState(false)
 
@@ -417,7 +418,7 @@ export default function Game() {
       const r = await fetch('/api/fusion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ char1: s1, char2: s2, isSuper, superMult: mult })
+        body: JSON.stringify({ char1: s1, char2: s2, isSuper, superMult: mult, apiKey: apiKeyRef.current })
       })
       if (!r.ok) throw new Error(`API ${r.status}`)
       const d = await r.json()
@@ -664,7 +665,8 @@ export default function Game() {
           fusionStats,
           boss: { name: boss.name, hp: boss.hp, attack: boss.attack, defense: boss.defense, element: boss.element },
           stage,
-          winner: winnerStr
+          winner: winnerStr,
+          apiKey: apiKeyRef.current
         })
       })
       if (!r.ok) throw new Error(`API ${r.status}`)
@@ -846,7 +848,7 @@ export default function Game() {
       const r = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ prompt, apiKey: apiKeyRef.current })
       })
       if (!r.ok) throw new Error(`API ${r.status}`)
       const d = await r.json()
@@ -1805,7 +1807,7 @@ export default function Game() {
       )}
 
       {/* Intro Modal */}
-      {showIntro && <IntroModal onClose={() => setShowIntro(false)} />}
+      {showIntro && <IntroModal onClose={(key) => { apiKeyRef.current = key; setShowIntro(false) }} />}
 
       {/* Settings Button */}
       <button

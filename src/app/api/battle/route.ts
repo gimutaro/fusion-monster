@@ -8,6 +8,7 @@ interface BattleRequest {
   boss: CharacterStats & { name: string }
   stage: number
   winner: 'party' | 'boss'
+  apiKey: string
 }
 
 interface BattleResponse {
@@ -16,17 +17,15 @@ interface BattleResponse {
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const body: BattleRequest = await request.json()
+    const { partyStats, fusionStats, boss, stage, winner, apiKey } = body
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'API key not configured' },
-        { status: 500 }
+        { error: 'API key is required' },
+        { status: 400 }
       )
     }
-
-    const body: BattleRequest = await request.json()
-    const { partyStats, fusionStats, boss, stage, winner } = body
 
     if (!partyStats || !fusionStats || !boss) {
       return NextResponse.json(
