@@ -61,6 +61,10 @@ export default function Game() {
     knockDist: number
     knockReturnStart?: THREE.Vector3
     onComplete?: () => void
+    attackType?: 'melee' | 'beam' | 'explosion'
+    beamProgress?: number
+    beamParticles?: THREE.Object3D[]
+    explosionPhase?: number
   } | null>(null)
   const savedRef = useRef<{ pos: THREE.Vector3; rot: THREE.Euler; vis: boolean }[]>([])
   const savedCamRef = useRef<{ pos: THREE.Vector3 } | null>(null)
@@ -233,14 +237,43 @@ export default function Game() {
   }, [])
 
   // Run attack animation
-  const runAtkAnim = useCallback((atk: THREE.Object3D | null, tgt: THREE.Object3D | null, onDone: (() => void) | undefined, element: string) => {
+  const runAtkAnim = useCallback((atk: THREE.Object3D | null, tgt: THREE.Object3D | null, onDone: (() => void) | undefined, element: string, isBossAttack = false) => {
     if (!atk || !tgt) { onDone?.(); return }
     const hp = atk.position.clone()
     const tp = tgt.position.clone()
     const dir = new THREE.Vector3().subVectors(tp, hp).normalize()
     const hitP = tp.clone().sub(dir.multiplyScalar(2.0))
     setAnimating(true)
-    animRef.current = { active: true, phase: 'forward', progress: 0, attacker: atk, target: tgt, homePos: hp, hitPos: hitP, targetHome: tgt.position.clone(), effectSpawned: false, element: element || 'fire', knockStarted: false, knockDir: null, knockDist: 0, onComplete: () => { setAnimating(false); onDone?.() } }
+
+    // Choose attack type: boss uses melee, beam, or explosion randomly; party uses melee
+    let attackType: 'melee' | 'beam' | 'explosion' = 'melee'
+    if (isBossAttack) {
+      const r = Math.random()
+      if (r < 0.33) attackType = 'melee'
+      else if (r < 0.66) attackType = 'beam'
+      else attackType = 'explosion'
+    }
+
+    animRef.current = {
+      active: true,
+      phase: attackType === 'melee' ? 'forward' : (attackType === 'beam' ? 'beam_charge' : 'explosion_charge'),
+      progress: 0,
+      attacker: atk,
+      target: tgt,
+      homePos: hp,
+      hitPos: hitP,
+      targetHome: tgt.position.clone(),
+      effectSpawned: false,
+      element: element || 'fire',
+      knockStarted: false,
+      knockDir: null,
+      knockDist: 0,
+      attackType,
+      beamProgress: 0,
+      beamParticles: [],
+      explosionPhase: 0,
+      onComplete: () => { setAnimating(false); onDone?.() }
+    }
   }, [])
 
   // Play defeat animation
@@ -767,7 +800,7 @@ export default function Game() {
         } else hp.bossHp = Math.max(0, hp.bossHp - dmg)
         setBHP({ ...hp, party: hp.party.map(p => ({ ...p })), fusion: hp.fusion ? { ...hp.fusion } : null })
         setTimeout(next, 3500)
-      }, atkElem)
+      }, atkElem, isBA)
     }
     setTimeout(next, 3500)
   }, [findPartyObj, runAtkAnim, playDefeatAnim, playVictoryAnim])
@@ -972,76 +1005,359 @@ export default function Game() {
       const ba = animRef.current
       if (ba && ba.active) {
         ba.progress += ba.phase === 'knockReturn' ? 0.012 : 0.025
-        if (ba.phase === 'forward') {
-          const p = Math.min(1, ba.progress)
-          ba.attacker.position.lerpVectors(ba.homePos, ba.hitPos, 1 - Math.pow(1 - p, 3))
-          if (p >= 1) { ba.phase = 'hit'; ba.progress = 0 }
-        } else if (ba.phase === 'hit') {
-          if (!ba.effectSpawned && ba.target && spawnFxRef.current) {
-            ba.effectSpawned = true
-            spawnFxRef.current(ba.targetHome.clone(), ba.element)
-            audioManager.playSE('hit')
+
+        // MELEE ATTACK (party characters)
+        if (ba.attackType === 'melee' || !ba.attackType) {
+          if (ba.phase === 'forward') {
+            const p = Math.min(1, ba.progress)
+            ba.attacker.position.lerpVectors(ba.homePos, ba.hitPos, 1 - Math.pow(1 - p, 3))
+            if (p >= 1) { ba.phase = 'hit'; ba.progress = 0 }
+          } else if (ba.phase === 'hit') {
+            if (!ba.effectSpawned && ba.target && spawnFxRef.current) {
+              ba.effectSpawned = true
+              spawnFxRef.current(ba.targetHome.clone(), ba.element)
+              audioManager.playSE('hit')
+            }
+            if (ba.target) {
+              if (!ba.knockStarted) {
+                ba.knockStarted = true
+                ba.knockDir = new THREE.Vector3().subVectors(ba.targetHome, ba.homePos).normalize()
+                ba.knockDist = 0
+              }
+              if (ba.knockDist < 4.0) {
+                const kspd = 0.25
+                ba.target.position.x = ba.targetHome.x + ba.knockDir!.x * ba.knockDist
+                ba.target.position.z = ba.targetHome.z + ba.knockDir!.z * ba.knockDist
+                ba.knockDist += kspd
+                ba.target.rotation.z = (Math.random() - 0.5) * 0.4
+                ba.target.position.y = ba.targetHome.y + (Math.random() - 0.5) * 0.3
+              }
+              ba.target.traverse(c => {
+                if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material) {
+                  const mat = (c as THREE.Mesh).material as THREE.MeshStandardMaterial
+                  if (c.userData._fc === undefined) {
+                    c.userData._fc = mat.color.getHex()
+                    c.userData._fe = mat.emissive.getHex()
+                    c.userData._fi = mat.emissiveIntensity
+                  }
+                  mat.color.setHex(0xffffff)
+                  mat.emissive.setHex(0xff4444)
+                  mat.emissiveIntensity = 1
+                }
+              })
+            }
+            if (ba.progress >= 0.4) {
+              if (ba.target) {
+                ba.target.traverse(c => {
+                  if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material && c.userData._fc !== undefined) {
+                    const mat = (c as THREE.Mesh).material as THREE.MeshStandardMaterial
+                    mat.color.setHex(c.userData._fc)
+                    mat.emissive.setHex(c.userData._fe)
+                    mat.emissiveIntensity = c.userData._fi
+                    delete c.userData._fc
+                    delete c.userData._fe
+                    delete c.userData._fi
+                  }
+                })
+                ba.target.rotation.z = 0
+              }
+              ba.phase = 'knockReturn'
+              ba.progress = 0
+              ba.knockReturnStart = ba.target ? ba.target.position.clone() : ba.targetHome.clone()
+            }
+          } else if (ba.phase === 'knockReturn') {
+            const p = Math.min(1, ba.progress)
+            const ease = p * p * (3 - 2 * p)
+            if (ba.target) ba.target.position.lerpVectors(ba.knockReturnStart!, ba.targetHome, ease)
+            if (p >= 1) {
+              if (ba.target) ba.target.position.copy(ba.targetHome)
+              ba.phase = 'return'
+              ba.progress = 0
+            }
+          } else if (ba.phase === 'return') {
+            const p = Math.min(1, ba.progress)
+            ba.attacker.position.lerpVectors(ba.hitPos, ba.homePos, p)
+            if (p >= 1) { ba.active = false; ba.onComplete?.() }
           }
-          if (ba.target) {
-            if (!ba.knockStarted) {
+        }
+
+        // BEAM ATTACK (boss)
+        else if (ba.attackType === 'beam') {
+          if (ba.phase === 'beam_charge') {
+            // Boss glows purple during charge
+            ba.attacker.traverse(c => {
+              if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material) {
+                const mat = (c as THREE.Mesh).material as THREE.MeshStandardMaterial
+                if (c.userData._bc === undefined) {
+                  c.userData._bc = mat.emissive.getHex()
+                  c.userData._bi = mat.emissiveIntensity
+                }
+                const pulse = Math.sin(ba.progress * 20) * 0.5 + 0.5
+                mat.emissive.setHex(0xff00ff)
+                mat.emissiveIntensity = 0.5 + pulse * 1.5
+              }
+            })
+            if (ba.progress >= 0.6) {
+              ba.phase = 'beam_fire'
+              ba.progress = 0
+              // Get boss head position (approximate)
+              const headPos = ba.attacker.position.clone()
+              headPos.y += 2.5
+              // Spawn beam
+              const beamParticles: THREE.Object3D[] = []
+              const dir = new THREE.Vector3().subVectors(ba.targetHome, headPos)
+              const dist = dir.length()
+              dir.normalize()
+              // Create beam cylinder
+              const beamGeo = new THREE.CylinderGeometry(0.12, 0.12, dist, 8)
+              const beamMat = new THREE.MeshStandardMaterial({
+                color: '#ff00ff', emissive: '#ff00ff', emissiveIntensity: 2, transparent: true, opacity: 0.9
+              })
+              const beam = new THREE.Mesh(beamGeo, beamMat)
+              beam.position.copy(headPos).add(ba.targetHome).multiplyScalar(0.5)
+              beam.lookAt(ba.targetHome)
+              beam.rotateX(Math.PI / 2)
+              beam.userData._fx = { life: 40, age: 0, isBeam: true }
+              scene.add(beam)
+              beamParticles.push(beam)
+              effectsRef.current.push(beam)
+              // Outer glow
+              const glowGeo = new THREE.CylinderGeometry(0.3, 0.3, dist, 8)
+              const glowMat = new THREE.MeshStandardMaterial({
+                color: '#aa00ff', emissive: '#8800cc', emissiveIntensity: 1.5, transparent: true, opacity: 0.4
+              })
+              const glow = new THREE.Mesh(glowGeo, glowMat)
+              glow.position.copy(beam.position)
+              glow.rotation.copy(beam.rotation)
+              glow.userData._fx = { life: 40, age: 0, isBeam: true }
+              scene.add(glow)
+              beamParticles.push(glow)
+              effectsRef.current.push(glow)
+              ba.beamParticles = beamParticles
+              audioManager.playSE('hit')
+            }
+          } else if (ba.phase === 'beam_fire') {
+            // Target takes damage - flash and knockback
+            if (ba.target && !ba.knockStarted) {
+              ba.knockStarted = true
+              ba.knockDir = new THREE.Vector3().subVectors(ba.targetHome, ba.homePos).normalize()
+              ba.knockDist = 0
+              // Spawn hit effect at target
+              if (spawnFxRef.current) {
+                spawnFxRef.current(ba.targetHome.clone(), 'dark')
+              }
+            }
+            if (ba.target && ba.knockDist < 3.0) {
+              const kspd = 0.2
+              ba.target.position.x = ba.targetHome.x + ba.knockDir!.x * ba.knockDist
+              ba.target.position.z = ba.targetHome.z + ba.knockDir!.z * ba.knockDist
+              ba.knockDist += kspd
+              ba.target.rotation.z = (Math.random() - 0.5) * 0.3
+              ba.target.traverse(c => {
+                if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material) {
+                  const mat = (c as THREE.Mesh).material as THREE.MeshStandardMaterial
+                  if (c.userData._fc === undefined) {
+                    c.userData._fc = mat.color.getHex()
+                    c.userData._fe = mat.emissive.getHex()
+                    c.userData._fi = mat.emissiveIntensity
+                  }
+                  mat.emissive.setHex(0xff00ff)
+                  mat.emissiveIntensity = 1.5
+                }
+              })
+            }
+            if (ba.progress >= 0.5) {
+              // Reset boss glow
+              ba.attacker.traverse(c => {
+                if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material && c.userData._bc !== undefined) {
+                  const mat = (c as THREE.Mesh).material as THREE.MeshStandardMaterial
+                  mat.emissive.setHex(c.userData._bc)
+                  mat.emissiveIntensity = c.userData._bi
+                  delete c.userData._bc
+                  delete c.userData._bi
+                }
+              })
+              // Reset target
+              if (ba.target) {
+                ba.target.traverse(c => {
+                  if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material && c.userData._fc !== undefined) {
+                    const mat = (c as THREE.Mesh).material as THREE.MeshStandardMaterial
+                    mat.color.setHex(c.userData._fc)
+                    mat.emissive.setHex(c.userData._fe)
+                    mat.emissiveIntensity = c.userData._fi
+                    delete c.userData._fc
+                    delete c.userData._fe
+                    delete c.userData._fi
+                  }
+                })
+                ba.target.rotation.z = 0
+              }
+              ba.phase = 'beam_recover'
+              ba.progress = 0
+              ba.knockReturnStart = ba.target ? ba.target.position.clone() : ba.targetHome.clone()
+            }
+          } else if (ba.phase === 'beam_recover') {
+            const p = Math.min(1, ba.progress * 1.5)
+            if (ba.target) ba.target.position.lerpVectors(ba.knockReturnStart!, ba.targetHome, p)
+            if (p >= 1) {
+              if (ba.target) ba.target.position.copy(ba.targetHome)
+              ba.active = false
+              ba.onComplete?.()
+            }
+          }
+        }
+
+        // EXPLOSION ATTACK (boss)
+        else if (ba.attackType === 'explosion') {
+          if (ba.phase === 'explosion_charge') {
+            // Boss flashes red during charge
+            const flashRate = Math.sin(ba.progress * 30) > 0
+            ba.attacker.traverse(c => {
+              if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material) {
+                const mat = (c as THREE.Mesh).material as THREE.MeshStandardMaterial
+                if (c.userData._ec === undefined) {
+                  c.userData._ec = mat.color.getHex()
+                  c.userData._ee = mat.emissive.getHex()
+                  c.userData._ei = mat.emissiveIntensity
+                }
+                if (flashRate) {
+                  mat.color.setHex(0xff4444)
+                  mat.emissive.setHex(0xff0000)
+                  mat.emissiveIntensity = 2
+                } else {
+                  mat.color.setHex(c.userData._ec)
+                  mat.emissive.setHex(0x440000)
+                  mat.emissiveIntensity = 0.5
+                }
+              }
+            })
+            if (ba.progress >= 0.7) {
+              // Reset boss colors
+              ba.attacker.traverse(c => {
+                if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material && c.userData._ec !== undefined) {
+                  const mat = (c as THREE.Mesh).material as THREE.MeshStandardMaterial
+                  mat.color.setHex(c.userData._ec)
+                  mat.emissive.setHex(c.userData._ee)
+                  mat.emissiveIntensity = c.userData._ei
+                  delete c.userData._ec
+                  delete c.userData._ee
+                  delete c.userData._ei
+                }
+              })
+              ba.phase = 'explosion_fire'
+              ba.progress = 0
+              // Spawn explosion at target
+              const explosionPos = ba.targetHome.clone()
+              // Create expanding ring
+              const ringGeo = new THREE.RingGeometry(0.3, 0.6, 32)
+              const ringMat = new THREE.MeshStandardMaterial({
+                color: '#ff4400', emissive: '#ff2200', emissiveIntensity: 2,
+                transparent: true, opacity: 1, side: THREE.DoubleSide
+              })
+              const ring = new THREE.Mesh(ringGeo, ringMat)
+              ring.position.copy(explosionPos)
+              ring.rotation.x = -Math.PI / 2
+              ring.userData._fx = { life: 40, age: 0, isExplosionRing: true }
+              scene.add(ring)
+              effectsRef.current.push(ring)
+              // Explosion particles
+              for (let i = 0; i < 35; i++) {
+                const colors = ['#ff4400', '#ff8800', '#ffcc00', '#ff0000']
+                const cl = colors[Math.floor(Math.random() * colors.length)]
+                const sz = 0.12 + Math.random() * 0.2
+                const geo = new THREE.SphereGeometry(sz, 8, 8)
+                const mat = new THREE.MeshStandardMaterial({
+                  color: cl, emissive: cl, emissiveIntensity: 1.5, transparent: true, opacity: 1
+                })
+                const m = new THREE.Mesh(geo, mat)
+                m.position.copy(explosionPos)
+                const ang = Math.random() * Math.PI * 2
+                const elev = (Math.random() - 0.5) * Math.PI
+                const spd = 0.12 + Math.random() * 0.12
+                m.userData._fx = {
+                  vx: Math.cos(ang) * Math.cos(elev) * spd,
+                  vy: Math.sin(elev) * spd + 0.08,
+                  vz: Math.sin(ang) * Math.cos(elev) * spd,
+                  grav: 0.004, life: 35 + Math.random() * 15, age: 0
+                }
+                scene.add(m)
+                effectsRef.current.push(m)
+              }
+              // Flash sphere
+              const flashGeo = new THREE.SphereGeometry(1.2, 16, 16)
+              const flashMat = new THREE.MeshStandardMaterial({
+                color: '#ffffff', emissive: '#ff8800', emissiveIntensity: 3, transparent: true, opacity: 0.8
+              })
+              const flash = new THREE.Mesh(flashGeo, flashMat)
+              flash.position.copy(explosionPos)
+              flash.userData._fx = { life: 12, age: 0, isFlash: true }
+              scene.add(flash)
+              effectsRef.current.push(flash)
+              // Light
+              const light = new THREE.PointLight('#ff4400', 18, 22)
+              light.position.copy(explosionPos)
+              light.userData._fx = { life: 25, age: 0, isLight: true }
+              scene.add(light)
+              effectsRef.current.push(light)
+              audioManager.playSE('hit')
+            }
+          } else if (ba.phase === 'explosion_fire') {
+            // Target takes damage
+            if (ba.target && !ba.knockStarted) {
               ba.knockStarted = true
               ba.knockDir = new THREE.Vector3().subVectors(ba.targetHome, ba.homePos).normalize()
               ba.knockDist = 0
             }
-            if (ba.knockDist < 4.0) {
-              const kspd = 0.25
+            if (ba.target && ba.knockDist < 3.5) {
+              const kspd = 0.22
               ba.target.position.x = ba.targetHome.x + ba.knockDir!.x * ba.knockDist
               ba.target.position.z = ba.targetHome.z + ba.knockDir!.z * ba.knockDist
               ba.knockDist += kspd
-              ba.target.rotation.z = (Math.random() - 0.5) * 0.4
-              ba.target.position.y = ba.targetHome.y + (Math.random() - 0.5) * 0.3
-            }
-            ba.target.traverse(c => {
-              if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material) {
-                const mat = (c as THREE.Mesh).material as THREE.MeshStandardMaterial
-                if (c.userData._fc === undefined) {
-                  c.userData._fc = mat.color.getHex()
-                  c.userData._fe = mat.emissive.getHex()
-                  c.userData._fi = mat.emissiveIntensity
-                }
-                mat.color.setHex(0xffffff)
-                mat.emissive.setHex(0xff4444)
-                mat.emissiveIntensity = 1
-              }
-            })
-          }
-          if (ba.progress >= 0.4) {
-            if (ba.target) {
+              ba.target.rotation.z = (Math.random() - 0.5) * 0.35
+              ba.target.position.y = ba.targetHome.y + (Math.random() - 0.5) * 0.25
               ba.target.traverse(c => {
-                if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material && c.userData._fc !== undefined) {
+                if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material) {
                   const mat = (c as THREE.Mesh).material as THREE.MeshStandardMaterial
-                  mat.color.setHex(c.userData._fc)
-                  mat.emissive.setHex(c.userData._fe)
-                  mat.emissiveIntensity = c.userData._fi
-                  delete c.userData._fc
-                  delete c.userData._fe
-                  delete c.userData._fi
+                  if (c.userData._fc === undefined) {
+                    c.userData._fc = mat.color.getHex()
+                    c.userData._fe = mat.emissive.getHex()
+                    c.userData._fi = mat.emissiveIntensity
+                  }
+                  mat.color.setHex(0xffaa88)
+                  mat.emissive.setHex(0xff4400)
+                  mat.emissiveIntensity = 1.2
                 }
               })
-              ba.target.rotation.z = 0
             }
-            ba.phase = 'knockReturn'
-            ba.progress = 0
-            ba.knockReturnStart = ba.target ? ba.target.position.clone() : ba.targetHome.clone()
+            if (ba.progress >= 0.5) {
+              // Reset target
+              if (ba.target) {
+                ba.target.traverse(c => {
+                  if ((c as THREE.Mesh).isMesh && (c as THREE.Mesh).material && c.userData._fc !== undefined) {
+                    const mat = (c as THREE.Mesh).material as THREE.MeshStandardMaterial
+                    mat.color.setHex(c.userData._fc)
+                    mat.emissive.setHex(c.userData._fe)
+                    mat.emissiveIntensity = c.userData._fi
+                    delete c.userData._fc
+                    delete c.userData._fe
+                    delete c.userData._fi
+                  }
+                })
+                ba.target.rotation.z = 0
+              }
+              ba.phase = 'explosion_recover'
+              ba.progress = 0
+              ba.knockReturnStart = ba.target ? ba.target.position.clone() : ba.targetHome.clone()
+            }
+          } else if (ba.phase === 'explosion_recover') {
+            const p = Math.min(1, ba.progress * 1.5)
+            if (ba.target) ba.target.position.lerpVectors(ba.knockReturnStart!, ba.targetHome, p)
+            if (p >= 1) {
+              if (ba.target) ba.target.position.copy(ba.targetHome)
+              ba.active = false
+              ba.onComplete?.()
+            }
           }
-        } else if (ba.phase === 'knockReturn') {
-          const p = Math.min(1, ba.progress)
-          const ease = p * p * (3 - 2 * p)
-          if (ba.target) ba.target.position.lerpVectors(ba.knockReturnStart!, ba.targetHome, ease)
-          if (p >= 1) {
-            if (ba.target) ba.target.position.copy(ba.targetHome)
-            ba.phase = 'return'
-            ba.progress = 0
-          }
-        } else if (ba.phase === 'return') {
-          const p = Math.min(1, ba.progress)
-          ba.attacker.position.lerpVectors(ba.hitPos, ba.homePos, p)
-          if (p >= 1) { ba.active = false; ba.onComplete?.() }
         }
       }
 
@@ -1113,7 +1429,27 @@ export default function Game() {
         }
         const pr = fx.age / fx.life
         if (fx.isLight) {
-          (obj as THREE.PointLight).intensity = 8 * (1 - pr)
+          (obj as THREE.PointLight).intensity = (fx.life > 20 ? 18 : 8) * (1 - pr)
+        } else if (fx.isBeam) {
+          // Beam fades out
+          const mat = (obj as THREE.Mesh).material as THREE.MeshStandardMaterial
+          mat.opacity = (1 - pr) * (mat.opacity > 0.5 ? 0.9 : 0.4)
+          // Slight pulsing
+          const pulse = 1 + Math.sin(fx.age * 0.5) * 0.1
+          obj.scale.x = pulse
+          obj.scale.z = pulse
+        } else if (fx.isExplosionRing) {
+          // Expanding ring
+          const scale = 1 + pr * 8
+          obj.scale.set(scale, scale, 1)
+          const mat = (obj as THREE.Mesh).material as THREE.MeshStandardMaterial
+          mat.opacity = 1 - pr
+        } else if (fx.isFlash) {
+          // Flash sphere shrinks and fades
+          const scale = 1.5 * (1 - pr * 0.5)
+          obj.scale.set(scale, scale, scale)
+          const mat = (obj as THREE.Mesh).material as THREE.MeshStandardMaterial
+          mat.opacity = 0.8 * (1 - pr)
         } else {
           obj.position.x += fx.vx
           obj.position.z += fx.vz
