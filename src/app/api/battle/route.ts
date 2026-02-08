@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     const dramaEvents = pickDramaEvents(2)
     const dramaDesc = dramaEvents.map((d, i) => `DRAMA${i + 1}: ${d.desc}`).join('\n')
     const partyInfo = partyStats.map(p =>
-      `${p.name}(HP:${p.hp},ATK:${p.attack},DEF:${p.defense},SPD:${p.speed},属性:${p.element})`
+      `${p.name}(HP:${p.hp},ATK:${p.attack},DEF:${p.defense},SPD:${p.speed},Element:${p.element})`
     ).join(', ')
 
     const systemPrompt = `You are a dramatic RPG battle script writer who creates exciting, emotional battle narratives. Output ONLY a valid JSON array. No markdown.
@@ -49,20 +49,20 @@ Mandatory dramatic twists:
 ${dramaDesc}
 
 WRITING STYLE:
-- Write passionate, emotional dialogue that shows each character's personality
+- Write passionate, emotional dialogue IN ENGLISH that shows each character's personality
 - Dialogue should be 1-2 sentences, dramatic and impactful
 - Short narration (under 15 chars) is OK before dialogue to set the scene
-- Format: short context + キャラ名「熱いセリフ！」
+- Format: short context + Character: "Dramatic line!"
 - Examples of GOOD text:
-  "炎の剣士「まだだ…まだ終わらせない！仲間がいる限り、俺は倒れない！」"
-  "渾身の一撃！ダークドラゴン「グォォォ！貴様ら、この痛み…許さんぞ！」"
-  "氷の狼「主よ、今こそ牙を見せる時だ」"
+  "Flame Swordsman: 'Not yet... I won't give up! As long as I have my comrades, I will never fall!'"
+  "A mighty blow! Dark Dragon: 'GRAAAAH! You pests... you'll pay for this pain!'"
+  "Ice Wolf: 'Master, now is the time to bare our fangs!'"
 - Make battles feel like anime climax scenes with tension, emotion, and hype
 - Characters should shout, taunt, encourage teammates, express pain and determination
 - Boss should be menacing and arrogant, then shocked when losing
 
-Event types: {"actor":"name","target":"name","action":"attack"|"special"|"drama"|"fusion_arrive"|"result","damage":number,"text":"Japanese","crit":bool}
-fusion_arrive: {"actor":"SYSTEM","action":"fusion_arrive","fusionName":"${fusionStats.name}","damage":0,"target":"","text":"${fusionStats.name}「dramatic entrance line」","crit":false}
+Event types: {"actor":"name","target":"name","action":"attack"|"special"|"drama"|"fusion_arrive"|"result","damage":number,"text":"English","crit":bool}
+fusion_arrive: {"actor":"SYSTEM","action":"fusion_arrive","fusionName":"${fusionStats.name}","damage":0,"target":"","text":"${fusionStats.name}: 'dramatic entrance line'","crit":false}
 result: {"actor":"SYSTEM","action":"result","winner":"${winner}","damage":0,"target":"","text":"final dramatic line","crit":false}
 CRITICAL: winner MUST be "${winner}". Fusion name EXACTLY "${fusionStats.name}".
 Damage values should be between 30-150.`
@@ -80,14 +80,14 @@ Damage values should be between 30-150.`
         system: systemPrompt,
         messages: [{
           role: 'user',
-          content: `Generate 12-15 battle events with dramatic, anime-style dialogue!
+          content: `Generate 12-15 battle events with dramatic, anime-style dialogue IN ENGLISH!
 Winner: ${winner}
 PARTY: ${partyInfo}
-BOSS: ${boss.name}(HP:${boss.hp},ATK:${boss.attack},DEF:${boss.defense},属性:dark) [STAGE ${stage}]
-FUSION: ${fusionStats.name}(HP:${fusionStats.hp},ATK:${fusionStats.attack},DEF:${fusionStats.defense},属性:${fusionStats.element})
+BOSS: ${boss.name}(HP:${boss.hp},ATK:${boss.attack},DEF:${boss.defense},Element:dark) [STAGE ${stage}]
+FUSION: ${fusionStats.name}(HP:${fusionStats.hp},ATK:${fusionStats.attack},DEF:${fusionStats.defense},Element:${fusionStats.element})
 Dramatic twists:
 ${dramaDesc}
-damage:30-150. NEVER use 融合体. Write passionate dialogue like a shonen anime climax!`
+damage:30-150. Write passionate dialogue IN ENGLISH like a shonen anime climax!`
         }]
       })
     })

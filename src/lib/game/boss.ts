@@ -2,14 +2,14 @@ import type { BossData, ModelPosition } from '@/types/game'
 
 // Horror creature base boss model - exact reproduction from boss.html
 const BASE_BOSS: BossData = {
-  name: 'ナイトメアビースト',
+  name: 'Nightmare Beast',
   element: 'dark',
   hp: 500,
   attack: 85,
   defense: 60,
   speed: 35,
   rarity: 4,
-  specialAbility: '恐怖の眼光',
+  specialAbility: 'Gaze of Terror',
   weakness: 'light',
   resistance: 'dark',
   model: {
@@ -120,16 +120,16 @@ const BASE_BOSS: BossData = {
 
 // Boss names by stage
 const BOSS_NAMES = [
-  'ナイトメアビースト',
-  'ブラッドフィーンド',
-  'フロストホラー',
-  'ヴェノムクリーパー',
-  'サンダーデーモン',
-  'シャドウレイス',
-  'インフェルノビースト',
-  'アビスウォッチャー',
-  'カオスホラー',
-  'エターナルナイトメア'
+  'Nightmare Beast',
+  'Blood Fiend',
+  'Frost Horror',
+  'Venom Creeper',
+  'Thunder Demon',
+  'Shadow Wraith',
+  'Inferno Beast',
+  'Abyss Watcher',
+  'Chaos Horror',
+  'Eternal Nightmare'
 ]
 
 // Color palettes for each stage: [body, head, ear, tentacle]

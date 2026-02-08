@@ -109,6 +109,9 @@ export default function Game() {
   // Settings modal state
   const [showSettings, setShowSettings] = useState(false)
 
+  // Battle start overlay
+  const [showBattleStart, setShowBattleStart] = useState(false)
+
   // Dice states
   const [showDice, setShowDice] = useState(false)
   const [diceRolling, setDiceRolling] = useState(false)
@@ -594,7 +597,7 @@ export default function Game() {
     setStep(3)
     setMode('battle')
     setBPhase('loading')
-    setBLog([`⚔️ STAGE ${stage} — ${boss.name}が現れた！`, '🔄 融合完了を待機中...'])
+    setBLog([`⚔️ STAGE ${stage} — ${boss.name} has appeared!`, '🔄 Waiting for fusion to complete...'])
     setupBattle(pp, boss)
 
     const partyStats = pp.map(idx => genRef.current[idx]?.userData?.stats as CharacterStats || {})
@@ -613,7 +616,7 @@ export default function Game() {
     setOutcomeInfo(outcome)
     const winnerStr = outcome.partyWins ? 'party' : 'boss'
 
-    setBLog([`⚔️ STAGE ${stage} — ${boss.name}が現れた！`, '🔄 バトル展開を生成中...'])
+    setBLog([`⚔️ STAGE ${stage} — ${boss.name} has appeared!`, '🔄 Generating battle sequence...'])
 
     try {
       const r = await fetch('/api/battle', {
@@ -639,12 +642,14 @@ export default function Game() {
         fusion: null
       }
       setBHP(initHP)
-      setBLog([`⚔️ STAGE ${stage} — ${boss.name}が現れた！`])
+      setBLog([`⚔️ STAGE ${stage} — ${boss.name} has appeared!`])
+      setShowBattleStart(true)
+      setTimeout(() => setShowBattleStart(false), 2500)
       setBPhase('playing')
       playEvents(events, initHP, boss)
     } catch (e) {
       console.error(e)
-      setBLog(p => [...p, '❌ バトル生成失敗: ' + (e instanceof Error ? e.message : String(e))])
+      setBLog(p => [...p, '❌ Battle generation failed: ' + (e instanceof Error ? e.message : String(e))])
       setBPhase('error')
     }
   }, [pp, setupBattle, stage, findPartyObj, runAtkAnim, playDefeatAnim, playVictoryAnim])
@@ -683,10 +688,10 @@ export default function Game() {
             }
             hp.fusion = { name: fRes.stats.name, hp: fRes.stats.hp || 200, max: fRes.stats.hp || 200 }
             setBHP({ ...hp, fusion: { ...hp.fusion } })
-            setBLog(p => { const n = [...p]; n[n.length - 1] = `✨ ${ev.text || fRes.stats.name + 'が参戦！'}`; return n })
+            setBLog(p => { const n = [...p]; n[n.length - 1] = `✨ ${ev.text || fRes.stats.name + ' has joined the battle!'}`; return n })
             setTimeout(next, 4500)
           } else {
-            setBLog(p => { const n = [...p]; n[n.length - 1] = '⏳ 融合完了を待っています...'; return n })
+            setBLog(p => { const n = [...p]; n[n.length - 1] = '⏳ Waiting for fusion to complete...'; return n })
             setTimeout(tryA, 1000)
           }
         }
@@ -696,7 +701,7 @@ export default function Game() {
 
       if (ev.action === 'result') {
         const won = ev.winner === 'party'
-        setBLog(p => [...p, `${won ? '🎉' : '💀'} ${ev.text || (won ? '勝利！' : '敗北...')}`])
+        setBLog(p => [...p, `${won ? '🎉' : '💀'} ${ev.text || (won ? 'Victory!' : 'Defeat...')}`])
         if (won) {
           audioManager.playSE('win')
           playDefeatAnim(bossRef.current)
@@ -1270,7 +1275,7 @@ export default function Game() {
               )}
 
               {!genOpen && fp.length === 0 && (
-                <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 5, fontFamily: 'Rajdhani, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.25)', whiteSpace: 'nowrap', letterSpacing: '0.05em' }}><span style={{ color: 'rgba(255,255,255,0.25)' }}>✦</span> モンスターを生成 / 2体クリックで融合へ</div>
+                <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 5, fontFamily: 'Rajdhani, sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.25)', whiteSpace: 'nowrap', letterSpacing: '0.05em' }}><span style={{ color: 'rgba(255,255,255,0.25)' }}>✦</span> Generate monsters / Click 2 to fuse</div>
               )}
 
               {genOpen && (
@@ -1281,8 +1286,8 @@ export default function Game() {
                       <button onClick={() => setGenOpen(false)} style={{ background: 'none', border: '1px solid #555', borderRadius: '50%', width: 28, height: 28, color: '#888', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                     </div>
                     <div style={{ display: 'flex', gap: 10 }}>
-                      <input type="text" value={prompt} onChange={e => setPrompt(e.target.value)} onKeyPress={e => e.key === 'Enter' && genObj()} placeholder="キャラクターを生成（例：炎の魔法使い）" disabled={isGen} style={{ flex: 1, background: 'rgba(0,0,0,0.5)', border: '1px solid #333', borderRadius: 4, padding: '12px 18px', fontSize: '1rem', color: '#fff', fontFamily: 'Rajdhani, sans-serif', outline: 'none' }} />
-                      <button onClick={() => { audioManager.playSE('button'); genObj() }} disabled={isGen || !prompt.trim()} style={{ background: isGen ? '#333' : 'linear-gradient(135deg, #00ffff, #00aaaa)', border: 'none', borderRadius: 4, padding: '12px 25px', fontSize: '0.95rem', fontWeight: 700, color: isGen ? '#666' : '#000', fontFamily: 'Orbitron, sans-serif', cursor: isGen ? 'not-allowed' : 'pointer', boxShadow: isGen ? 'none' : '0 0 20px rgba(0,255,255,0.5)' }}>{isGen ? '生成中...' : '生成'}</button>
+                      <input type="text" value={prompt} onChange={e => setPrompt(e.target.value)} onKeyPress={e => e.key === 'Enter' && genObj()} placeholder="Generate a character (e.g., Fire Mage)" disabled={isGen} style={{ flex: 1, background: 'rgba(0,0,0,0.5)', border: '1px solid #333', borderRadius: 4, padding: '12px 18px', fontSize: '1rem', color: '#fff', fontFamily: 'Rajdhani, sans-serif', outline: 'none' }} />
+                      <button onClick={() => { audioManager.playSE('button'); genObj() }} disabled={isGen || !prompt.trim()} style={{ background: isGen ? '#333' : 'linear-gradient(135deg, #00ffff, #00aaaa)', border: 'none', borderRadius: 4, padding: '12px 25px', fontSize: '0.95rem', fontWeight: 700, color: isGen ? '#666' : '#000', fontFamily: 'Orbitron, sans-serif', cursor: isGen ? 'not-allowed' : 'pointer', boxShadow: isGen ? 'none' : '0 0 20px rgba(0,255,255,0.5)' }}>{isGen ? 'Generating...' : 'Generate'}</button>
                     </div>
                     {error && <div style={{ marginTop: 10, padding: 8, background: 'rgba(255,0,100,0.2)', border: '1px solid #ff0066', borderRadius: 4, color: '#ff0066', fontSize: '0.8rem', fontFamily: 'Rajdhani, sans-serif' }}>{error}</div>}
                   </div>
@@ -1309,7 +1314,7 @@ export default function Game() {
                                 <div style={{ fontSize: '0.6rem', color: EC[s.element as Element] || '#888' }}>{EName[s.element as Element] || s.element} ★{s.rarity}</div>
                               </>
                             ) : (
-                              <div style={{ color: '#555', fontSize: '0.65rem', fontFamily: 'Rajdhani, sans-serif' }}>未選択</div>
+                              <div style={{ color: '#555', fontSize: '0.65rem', fontFamily: 'Rajdhani, sans-serif' }}>Not selected</div>
                             )}
                           </div>
                         )
@@ -1328,8 +1333,8 @@ export default function Game() {
               {fp.length > 0 && history.length < 3 && (
                 <div style={{ position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 20, width: '85%', maxWidth: 300 }}>
                   <div style={{ background: 'rgba(10,10,20,0.95)', border: '1px solid #555', borderRadius: 10, padding: 14, textAlign: 'center' }}>
-                    <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.8rem', color: '#888', marginBottom: 10 }}>あと{3 - history.length}体必要です</div>
-                    <button onClick={() => setFp([])} style={{ background: '#333', border: 'none', borderRadius: 5, padding: '6px 16px', fontSize: '0.75rem', color: '#aaa', fontFamily: 'Rajdhani, sans-serif', cursor: 'pointer' }}>閉じる</button>
+                    <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.8rem', color: '#888', marginBottom: 10 }}>Need {3 - history.length} more characters</div>
+                    <button onClick={() => setFp([])} style={{ background: '#333', border: 'none', borderRadius: 5, padding: '6px 16px', fontSize: '0.75rem', color: '#aaa', fontFamily: 'Rajdhani, sans-serif', cursor: 'pointer' }}>Close</button>
                   </div>
                 </div>
               )}
@@ -1341,16 +1346,16 @@ export default function Game() {
               <div style={{ background: 'rgba(10,10,20,0.95)', border: '1.5px solid #ff4444', borderRadius: 10, padding: 14, boxShadow: '0 0 25px rgba(255,0,0,0.25)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '0.7rem', color: '#ff4444' }}>⚔️ STAGE {stage} BATTLE</span>
-                  <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.6rem', color: fusionSt === 'ready' ? '#44ff44' : fusionSt === 'generating' ? '#ff00ff' : '#ff4444' }}>{fusionSt === 'generating' ? '⏳ 融合中...' : fusionSt === 'ready' ? '✅ 融合完了' : '❌ 失敗'}</span>
+                  <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.6rem', color: fusionSt === 'ready' ? '#44ff44' : fusionSt === 'generating' ? '#ff00ff' : '#ff4444' }}>{fusionSt === 'generating' ? '⏳ Fusing...' : fusionSt === 'ready' ? '✅ Fusion Complete' : '❌ Failed'}</span>
                 </div>
                 <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.65rem', color: '#aaa', marginBottom: 6 }}>▼ 参戦モンスターを選択</div>
+                  <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.65rem', color: '#aaa', marginBottom: 6 }}>▼ Select monsters to join battle</div>
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', minHeight: 28 }}>
                     {pp.length > 0 ? pp.map(idx => {
                       const s = genRef.current[idx]?.userData?.stats as CharacterStats
                       return s ? <div key={idx} style={{ padding: '4px 10px', background: 'rgba(0,255,255,0.1)', border: '1px solid #00ffff', borderRadius: 6, fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#fff', fontSize: '0.7rem' }}>{s.name}</div> : null
                     }) : (
-                      <div style={{ padding: '4px 14px', border: '1px dashed #666', borderRadius: 6, fontFamily: 'Rajdhani, sans-serif', fontSize: '0.65rem', color: '#666' }}>残りのモンスターをクリック</div>
+                      <div style={{ padding: '4px 14px', border: '1px dashed #666', borderRadius: 6, fontFamily: 'Rajdhani, sans-serif', fontSize: '0.65rem', color: '#666' }}>Click remaining monsters</div>
                     )}
                   </div>
                 </div>
@@ -1420,20 +1425,39 @@ export default function Game() {
                 })}
                 <div ref={logEndRef} />
               </div>
-              {bPhase === 'loading' && <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', color: '#00ffff', textAlign: 'center', animation: 'pulse 0.8s infinite' }}>🔄 バトルシナリオ生成中...</div>}
+              {bPhase === 'loading' && <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', color: '#00ffff', textAlign: 'center', animation: 'pulse 0.8s infinite' }}>🔄 Generating battle scenario...</div>}
             </div>
           </div>
           <div style={{ flex: 1 }} />
           {(bPhase === 'done' || bPhase === 'lost') && (
             <div style={{ pointerEvents: 'auto', textAlign: 'center', padding: '10px 20px 30px', background: 'linear-gradient(0deg, rgba(5,5,15,0.9) 60%, transparent)' }}>
               <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '1.5rem', fontWeight: 900, color: bPhase === 'done' ? '#ffd700' : '#ff4444', animation: bPhase === 'done' ? 'victoryGlow 1s infinite' : 'none', textShadow: bPhase === 'lost' ? '0 0 20px #ff0000' : undefined, marginBottom: 6 }}>{bPhase === 'done' ? '🎉 VICTORY! 🎉' : '💀 DEFEAT... 💀'}</div>
-              {bPhase === 'done' && <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.85rem', color: '#00ffff', marginBottom: 10 }}>▶ STAGE {stage + 1} が解放されます</div>}
-              <button onClick={() => { audioManager.playSE('button'); endBattle(bPhase === 'done') }} style={{ background: bPhase === 'done' ? 'linear-gradient(135deg, #ffd700, #ff8800)' : 'linear-gradient(135deg, #666, #444)', border: 'none', borderRadius: 8, padding: '10px 30px', fontSize: '0.85rem', fontWeight: 700, color: bPhase === 'done' ? '#000' : '#fff', fontFamily: 'Orbitron, sans-serif', cursor: 'pointer', boxShadow: bPhase === 'done' ? '0 0 20px rgba(255,200,0,0.5)' : '0 0 15px rgba(255,0,0,0.3)' }}>{bPhase === 'done' ? `STAGE ${stage + 1} へ` : 'フィールドに戻る'}</button>
+              {bPhase === 'done' && <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.85rem', color: '#00ffff', marginBottom: 10 }}>▶ STAGE {stage + 1} is now unlocked</div>}
+              <button onClick={() => { audioManager.playSE('button'); endBattle(bPhase === 'done') }} style={{ background: bPhase === 'done' ? 'linear-gradient(135deg, #ffd700, #ff8800)' : 'linear-gradient(135deg, #666, #444)', border: 'none', borderRadius: 8, padding: '10px 30px', fontSize: '0.85rem', fontWeight: 700, color: bPhase === 'done' ? '#000' : '#fff', fontFamily: 'Orbitron, sans-serif', cursor: 'pointer', boxShadow: bPhase === 'done' ? '0 0 20px rgba(255,200,0,0.5)' : '0 0 15px rgba(255,0,0,0.3)' }}>{bPhase === 'done' ? `Go to STAGE ${stage + 1}` : 'Return to Field'}</button>
             </div>
           )}
           {bPhase === 'error' && (
             <div style={{ pointerEvents: 'auto', textAlign: 'center', padding: '10px 20px 30px', background: 'linear-gradient(0deg, rgba(5,5,15,0.9) 60%, transparent)' }}>
-              <button onClick={() => { audioManager.playSE('button'); endBattle(false) }} style={{ background: '#444', border: 'none', borderRadius: 8, padding: '10px 30px', fontSize: '0.85rem', fontWeight: 700, color: '#fff', fontFamily: 'Orbitron, sans-serif', cursor: 'pointer' }}>フィールドに戻る</button>
+              <button onClick={() => { audioManager.playSE('button'); endBattle(false) }} style={{ background: '#444', border: 'none', borderRadius: 8, padding: '10px 30px', fontSize: '0.85rem', fontWeight: 700, color: '#fff', fontFamily: 'Orbitron, sans-serif', cursor: 'pointer' }}>Return to Field</button>
+            </div>
+          )}
+          {/* BATTLE START overlay */}
+          {showBattleStart && (
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              fontFamily: 'Orbitron, sans-serif',
+              fontSize: '3rem',
+              fontWeight: 900,
+              color: '#fff',
+              textShadow: '0 0 30px #ff0000, 0 0 60px #ff4400, 0 0 90px #ff8800',
+              letterSpacing: '0.2em',
+              animation: 'battleStartFade 2.5s forwards',
+              zIndex: 200
+            }}>
+              BATTLE START
             </div>
           )}
         </div>

@@ -12,12 +12,12 @@ export const EC: Record<Element, string> = {
 
 // Element names with emoji
 export const EName: Record<Element, string> = {
-  fire: '🔥炎',
-  water: '💧水',
-  wind: '🌿風',
-  earth: '🪨地',
-  dark: '🌙闇',
-  light: '✨光'
+  fire: '🔥Fire',
+  water: '💧Water',
+  wind: '🌿Wind',
+  earth: '🪨Earth',
+  dark: '🌙Dark',
+  light: '✨Light'
 }
 
 // Element advantage chart
@@ -42,46 +42,46 @@ export const DICE_DOTS: Record<number, [number, number][]> = {
 
 // Drama events pool
 export const DRAMA_POOL: DramaEvent[] = [
-  { id: 'meteor', desc: '巨大隕石が戦場に落下し、衝撃波で両陣営が吹き飛ばされる' },
-  { id: 'earthquake', desc: '大地が裂け、溶岩が噴き出す' },
-  { id: 'storm', desc: '突然の雷嵐が発生。落雷がボスを直撃' },
-  { id: 'eclipse', desc: '日食が起こり闇の力が増幅' },
-  { id: 'blizzard', desc: '猛吹雪が戦場を包み視界ゼロに' },
-  { id: 'flood', desc: '地下水脈が破裂し戦場が水没し始める' },
-  { id: 'ancient_spirit', desc: '古代の戦士の亡霊が現れパーティの一人に憑依して超強化' },
-  { id: 'sealed_power', desc: 'パーティメンバーの一人が隠された血統の力に目覚め変身' },
-  { id: 'dragon_roar', desc: 'ボスが魂を削る咆哮を放ちパーティ全員の攻撃力が激減' },
-  { id: 'boss_evolve', desc: 'ボスが追い詰められ第二形態に進化' },
-  { id: 'dimension_crack', desc: '次元の裂け目が開き異世界のエネルギーが流入' },
-  { id: 'curse_backfire', desc: 'ボスの呪術が暴走し自分自身を蝕み始める' },
-  { id: 'hostage', desc: 'ボスがパーティの一人を人質に取り盾にする' },
-  { id: 'trap', desc: '古代のトラップが発動し毒の霧が充満' },
-  { id: 'gravity_flip', desc: '重力が反転し全員が宙に浮く' },
-  { id: 'mirror_world', desc: '鏡の結界が展開され全員の攻撃が反射される' },
-  { id: 'sacrifice', desc: 'パーティメンバーが自分のHPを犠牲にして仲間を全回復' },
-  { id: 'weapon_break', desc: 'ボスの攻撃で主力武器が破壊されるが破片が新武器に再構築' },
-  { id: 'time_slow', desc: '時間魔法が発動し戦場がスローモーションに' },
-  { id: 'slime_rain', desc: '空からスライムの大群が降ってきて大混乱' },
-  { id: 'treasure', desc: '戦闘の衝撃で地面から伝説の宝箱が出現' },
-  { id: 'phoenix_flame', desc: '不死鳥の炎が噴き上がり倒れかけた味方が復活' },
-  { id: 'crystal_prison', desc: '巨大クリスタルがせり上がりボスの片翼を封じ込める' },
-  { id: 'blood_moon', desc: '血の月が昇り全員の必殺技ゲージが一気に溜まる' },
-  { id: 'soul_link', desc: 'パーティメンバー同士の魂が共鳴しダメージを分散' },
-  { id: 'void_zone', desc: '戦場の一部が虚無に飲み込まれ至近距離の殴り合いに' }
+  { id: 'meteor', desc: 'A massive meteor crashes into the battlefield, the shockwave blasting both sides' },
+  { id: 'earthquake', desc: 'The earth splits open, lava erupting from the cracks' },
+  { id: 'storm', desc: 'A sudden lightning storm appears. A bolt strikes the boss directly' },
+  { id: 'eclipse', desc: 'An eclipse occurs, amplifying the power of darkness' },
+  { id: 'blizzard', desc: 'A fierce blizzard engulfs the battlefield, reducing visibility to zero' },
+  { id: 'flood', desc: 'An underground water vein bursts, flooding the battlefield' },
+  { id: 'ancient_spirit', desc: 'The ghost of an ancient warrior appears and possesses a party member, greatly empowering them' },
+  { id: 'sealed_power', desc: 'One party member awakens to their hidden bloodline power and transforms' },
+  { id: 'dragon_roar', desc: 'The boss unleashes a soul-crushing roar, drastically reducing the entire party\'s attack power' },
+  { id: 'boss_evolve', desc: 'Cornered, the boss evolves into its second form' },
+  { id: 'dimension_crack', desc: 'A dimensional rift opens, otherworldly energy pouring through' },
+  { id: 'curse_backfire', desc: 'The boss\'s curse magic goes haywire, beginning to consume itself' },
+  { id: 'hostage', desc: 'The boss takes a party member hostage, using them as a shield' },
+  { id: 'trap', desc: 'An ancient trap activates, filling the area with poisonous mist' },
+  { id: 'gravity_flip', desc: 'Gravity reverses, everyone floats into the air' },
+  { id: 'mirror_world', desc: 'A mirror barrier unfolds, reflecting everyone\'s attacks' },
+  { id: 'sacrifice', desc: 'A party member sacrifices their own HP to fully heal their allies' },
+  { id: 'weapon_break', desc: 'The boss\'s attack destroys the main weapon, but the fragments reform into a new weapon' },
+  { id: 'time_slow', desc: 'Time magic activates, the battlefield moving in slow motion' },
+  { id: 'slime_rain', desc: 'A horde of slimes rains from the sky, causing chaos' },
+  { id: 'treasure', desc: 'The battle\'s impact unearths a legendary treasure chest' },
+  { id: 'phoenix_flame', desc: 'Phoenix flames erupt, reviving a fallen ally' },
+  { id: 'crystal_prison', desc: 'A massive crystal rises, sealing one of the boss\'s wings' },
+  { id: 'blood_moon', desc: 'A blood moon rises, instantly charging everyone\'s special attack gauge' },
+  { id: 'soul_link', desc: 'The party members\' souls resonate, sharing damage among them' },
+  { id: 'void_zone', desc: 'Part of the battlefield is swallowed by the void, forcing close-quarters combat' }
 ]
 
 // Initial characters
 export const INITIAL_CHARS: CharacterDefinition[] = [
   {
     stats: {
-      name: '炎の剣士',
+      name: 'Flame Swordsman',
       hp: 180,
       attack: 85,
       defense: 55,
       speed: 70,
       element: 'fire',
       rarity: 3,
-      trait: '誇り高き戦士の魂を持ち、仲間のためなら命を懸ける。炎を纏った拳は鋼をも溶かすほどの熱量を誇る。戦場では常に先陣を切り、その背中が仲間の勇気となる。'
+      trait: 'A warrior with a proud soul who would risk their life for their comrades. Their flame-clad fists boast enough heat to melt steel. Always leading the charge, their back inspires courage in allies.'
     },
     model: {
       type: 'group',
@@ -114,14 +114,14 @@ export const INITIAL_CHARS: CharacterDefinition[] = [
   },
   {
     stats: {
-      name: '氷の狼',
+      name: 'Ice Wolf',
       hp: 150,
       attack: 70,
       defense: 45,
       speed: 95,
       element: 'water',
       rarity: 3,
-      trait: '孤高の一匹狼で、群れを持たず凍土を駆け抜ける。吹雪の中でも獲物を見失わない鋭い嗅覚と、氷の牙で一撃必殺を狙う。心を許した主人には忠実で、その絆は永久凍土より固い。'
+      trait: 'A proud lone wolf, running through frozen lands without a pack. With keen senses that never lose prey even in blizzards, they aim for one-hit kills with their icy fangs. Fiercely loyal to those they trust, their bond is harder than permafrost.'
     },
     model: {
       type: 'group',
@@ -151,14 +151,14 @@ export const INITIAL_CHARS: CharacterDefinition[] = [
   },
   {
     stats: {
-      name: '蒼天の鷲',
+      name: 'Azure Eagle',
       hp: 140,
       attack: 75,
       defense: 40,
       speed: 100,
       element: 'wind',
       rarity: 3,
-      trait: '大空の支配者として雷雲を裂いて飛ぶ姿は蒼い流星のよう。誰よりも自由を愛し、束縛を嫌う気高い性格。その翼が起こす突風は、大地の木々をなぎ倒すほどの力を秘めている。'
+      trait: 'Master of the skies, soaring through thunderclouds like a blue comet. A noble spirit who loves freedom above all and despises restraint. Their wings generate gusts powerful enough to flatten forests.'
     },
     model: {
       type: 'group',

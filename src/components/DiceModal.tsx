@@ -255,7 +255,7 @@ export function DiceModal({
               animation: 'pulse 1.5s infinite'
             }}
           >
-            🎲 サイコロをクリックして振る！
+            🎲 Click the dice to roll!
           </div>
         )}
 
@@ -268,7 +268,7 @@ export function DiceModal({
               transition: 'color 0.3s'
             }}
           >
-            {dicePhase === 'slowing' ? '止まりそう...' : 'ダイスを振っています...'}
+            {dicePhase === 'slowing' ? 'Slowing down...' : 'Rolling the dice...'}
           </div>
         )}
 
@@ -297,7 +297,7 @@ export function DiceModal({
                     marginBottom: 16
                   }}
                 >
-                  出目 {diceResult.value} — 融合失敗！先に選んだキャラで続行
+                  Rolled {diceResult.value} — Fusion failed! Continuing with first selected character
                 </div>
               </div>
             )}
@@ -323,7 +323,7 @@ export function DiceModal({
                     marginBottom: 16
                   }}
                 >
-                  出目 {diceResult.value} — 通常融合と同じステータス
+                  Rolled {diceResult.value} — Same stats as normal fusion
                 </div>
               </div>
             )}
@@ -351,7 +351,7 @@ export function DiceModal({
                     marginBottom: 16
                   }}
                 >
-                  出目 {diceResult.value} — ステータス1.5倍で融合！
+                  Rolled {diceResult.value} — Stats x1.5 fusion!
                 </div>
               </div>
             )}
@@ -379,7 +379,7 @@ export function DiceModal({
                     : '0 0 15px rgba(0,255,255,0.3)'
               }}
             >
-              {diceResult.outcome === 'fail' ? '融合失敗…先へ進む' : '融合開始！'}
+              {diceResult.outcome === 'fail' ? 'Fusion failed... Proceed' : 'Start Fusion!'}
             </button>
           </>
         )}

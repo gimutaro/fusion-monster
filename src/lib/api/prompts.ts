@@ -5,10 +5,10 @@ export function getSysPrompt(): string {
   return `You are a MASTER 3D character artist creating HIGH-QUALITY stylized characters. Output ONLY valid JSON.
 
 === OUTPUT FORMAT ===
-{"model":{...3D model...},"stats":{"name":"Character Name","hp":100,"attack":50,"defense":40,"speed":60,"element":"fire","rarity":3,"trait":"2 sentences in Japanese describing personality and abilities"}}
+{"model":{...3D model...},"stats":{"name":"Character Name","hp":100,"attack":50,"defense":40,"speed":60,"element":"fire","rarity":3,"trait":"2 sentences in English describing personality and abilities"}}
 
 === STATS RULES ===
-hp:50-999, attack/defense/speed:10-150, element:"fire"/"water"/"wind"/"earth"/"dark"/"light" (ONLY these 6), rarity:1-5, trait: 2 Japanese sentences describing personality and abilities
+hp:50-999, attack/defense/speed:10-150, element:"fire"/"water"/"wind"/"earth"/"dark"/"light" (ONLY these 6), rarity:1-5, trait: 2 English sentences describing personality and abilities
 
 SHAPES: box, sphere, cylinder, cone, torus, torusknot, dodecahedron, icosahedron, octahedron, tetrahedron, ring, plane, group
 

@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       speed: 20 + Math.floor(Math.random() * 100),
       element: ['fire', 'water', 'wind', 'earth', 'dark', 'light'][Math.floor(Math.random() * 6)] as CharacterStats['element'],
       rarity: 1 + Math.floor(Math.random() * 5),
-      trait: '謎に包まれた存在で、その正体を知る者はいない。不思議な力を秘めており、周囲の空気が歪むほどの魔力を放つ。'
+      trait: 'A mysterious being whose true identity is unknown. They possess strange powers, emanating magic so intense it warps the air around them.'
     }
 
     const result: GenerateResponse = { model, stats }

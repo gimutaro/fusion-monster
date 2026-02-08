@@ -79,7 +79,7 @@ export function StageClearModal({ stage, nextBoss, onClose }: StageClearModalPro
             marginBottom: 8
           }}
         >
-          ▶ STAGE {stage} へ進む
+          ▶ Proceed to STAGE {stage}
         </div>
         {stage === 2 && (
           <div
@@ -95,7 +95,7 @@ export function StageClearModal({ stage, nextBoss, onClose }: StageClearModalPro
               display: 'inline-block'
             }}
           >
-            🎲 Super Fusion が解放されました！
+            🎲 Super Fusion is now unlocked!
           </div>
         )}
         <div
@@ -106,7 +106,7 @@ export function StageClearModal({ stage, nextBoss, onClose }: StageClearModalPro
             marginBottom: 6
           }}
         >
-          次のボス: <span style={{ color: '#ff4444', fontWeight: 700 }}>{nextBoss.name}</span>
+          Next Boss: <span style={{ color: '#ff4444', fontWeight: 700 }}>{nextBoss.name}</span>
         </div>
         <div
           style={{
@@ -136,7 +136,7 @@ export function StageClearModal({ stage, nextBoss, onClose }: StageClearModalPro
             marginTop: 24
           }}
         >
-          タップして続ける
+          Tap to continue
         </div>
       </div>
     </div>
